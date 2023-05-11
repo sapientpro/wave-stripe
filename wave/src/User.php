@@ -4,6 +4,8 @@ namespace Wave;
 
 use Carbon\Carbon;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Lab404\Impersonate\Models\Impersonate;
@@ -118,6 +120,20 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(PaddleSubscription::class);
     }
 
+    public function getCurrentStripeSubscriptionName()
+    {
+        $today = Carbon::today();
+
+        $subscription = DB::table('subscriptions')
+            ->where('user_id', '=', $this->id)
+            ->where(function ($query) use ($today) {
+                $query->where('ends_at', '>', $today) // exclude ended subscriptions
+                ->orWhereNull('ends_at'); // include subscriptions with no end date
+            })
+            ->first();
+
+        return $subscription?->name ?? '';
+    }
 
     /**
      * @return bool

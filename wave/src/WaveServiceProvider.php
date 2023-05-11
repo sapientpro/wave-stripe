@@ -78,8 +78,6 @@ class WaveServiceProvider extends ServiceProvider
 
     protected function loadBladeDirectives(string $paymentVendor){
 
-//        $paymentVendor = config('payment.vendor');
-
         // Subscription Directives
 
         Blade::directive('subscribed', function ($plan) {

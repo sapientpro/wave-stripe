@@ -32,7 +32,7 @@ class StripeController extends Controller
             'cancel_url' => route('stripe.error-checkout'),
             'line_items' => [
                 [
-                    'price' => $request->get('planId'),
+                    'price' => $plan->plan_id,
                     'quantity' => 1,
                 ],
             ],
@@ -42,6 +42,9 @@ class StripeController extends Controller
             ],
             'allow_promotion_codes' => config('payment.stripe.allow_promo_codes'),
             'locale' => "auto",
+            'metadata' => [
+                'name' => $plan->slug,
+            ],
         ];
 
         if ($plan->trial_days > 0) {
@@ -78,7 +81,8 @@ class StripeController extends Controller
         $subscription = $stripe->subscriptions->retrieve($session->subscription);
 
         $user = $this->createUserFromCheckout($customer);
-        $this->createStripeSubscription($user, $subscription);
+        $name = $session->metadata?->name ?? 'default';
+        $this->createStripeSubscription($user, $subscription, $name);
 
         // Update User role
         $plan = Plan::where('plan_id', $subscription->plan->id)->first();
@@ -160,7 +164,7 @@ class StripeController extends Controller
         return $user;
     }
 
-    private function createStripeSubscription($user,  \Stripe\Subscription $stripeSubscription)
+    private function createStripeSubscription($user,  \Stripe\Subscription $stripeSubscription, string $name = 'default')
     {
         if (!$user->hasDefaultPaymentMethod()) {
             $user->updateDefaultPaymentMethod($stripeSubscription->default_payment_method);
@@ -175,7 +179,7 @@ class StripeController extends Controller
 
         /** @var \Laravel\Cashier\Subscription $subscription */
         $subscription = $user->subscriptions()->create([
-            'name' => 'default',
+            'name' => $name,
             'stripe_id' => $stripeSubscription->id,
             'stripe_status' => $stripeSubscription->status,
             'stripe_price' => $isSinglePrice ? $firstItem->price->id : null,
