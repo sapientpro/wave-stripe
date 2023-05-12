@@ -2,6 +2,7 @@
 
 namespace Wave;
 
+use App\Traits\SubscriptionsTrait;
 use Carbon\Carbon;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,10 @@ use Laravel\Cashier\Billable as StripeBillable;
 class User extends Authenticatable implements JWTSubject
 {
     use Notifiable, Impersonate;
-    use StripeBillable;
+    use SubscriptionsTrait, StripeBillable {
+        SubscriptionsTrait::subscribed insteadof StripeBillable;
+        SubscriptionsTrait::subscription insteadof StripeBillable;
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -71,31 +75,6 @@ class User extends Authenticatable implements JWTSubject
         return true;
     }
 
-    public function subscribed($plan = 'default', $price = null) {
-
-        if(config('payment.vendor') == 'stripe') {
-            $subscription = $this->subscription($plan);
-
-            if (!$subscription || !$subscription->valid()) {
-                return false;
-            }
-
-            return !$price || $subscription->hasPrice($price);
-        } else {
-            $plan = Plan::where('slug', $plan)->first();
-
-            // if the user is an admin they automatically have access to the default plan
-            if(isset($plan->default) && $plan->default && $this->hasRole('admin')) return true;
-
-            if(isset($plan->slug) && $this->hasRole($plan->slug)){
-                return true;
-            }
-
-            return false;
-        }
-
-    }
-
     public function subscriber(){
 
         if($this->hasRole('admin')) return true;
@@ -111,28 +90,9 @@ class User extends Authenticatable implements JWTSubject
         return false;
     }
 
-    public function subscription($name = 'default')
+    public function getCurrentSubscriptionName()
     {
-        if (config('payment.vendor') == 'stripe') {
-            return $this->subscriptions->where('name', $name)->first();
-        }
-
-        return $this->hasOne(PaddleSubscription::class);
-    }
-
-    public function getCurrentStripeSubscriptionName()
-    {
-        $today = Carbon::today();
-
-        $subscription = DB::table('subscriptions')
-            ->where('user_id', '=', $this->id)
-            ->where(function ($query) use ($today) {
-                $query->where('ends_at', '>', $today) // exclude ended subscriptions
-                ->orWhereNull('ends_at'); // include subscriptions with no end date
-            })
-            ->first();
-
-        return $subscription?->name ?? '';
+        return $this->role->display_name;
     }
 
     /**

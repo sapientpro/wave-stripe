@@ -1,6 +1,6 @@
 <div class="block px-4 py-1">
     @php
-        $subscriptionName = auth()->user()->getCurrentStripeSubscriptionName();
+        $subscriptionName = auth()->user()->getCurrentSubscriptionName();
     @endphp
     @if (optional(auth()->user()->subscription($subscriptionName))?->onGracePeriod())
         <svg class="h-4 w-4 mt-0.5 mr-2 inline text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

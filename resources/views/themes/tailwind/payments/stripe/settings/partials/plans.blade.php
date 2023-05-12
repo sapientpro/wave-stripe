@@ -2,7 +2,7 @@
 
     @subscriber
     @php
-        $subscriptionName = auth()->user()->getCurrentStripeSubscriptionName();
+        $subscriptionName = auth()->user()->getCurrentSubscriptionName();
     @endphp
     @if (optional(auth()->user()->subscription($subscriptionName))?->onGracePeriod())
         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 my-4">
