@@ -5,17 +5,11 @@ namespace Wave;
 use App\Traits\SubscriptionsTrait;
 use Carbon\Carbon;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Lab404\Impersonate\Models\Impersonate;
 use TCG\Voyager\Models\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use Wave\Announcement;
-use Wave\PaddleSubscription;
-use Wave\Plan;
-use Wave\ApiToken;
 use Laravel\Cashier\Billable as StripeBillable;
 
 class User extends Authenticatable implements JWTSubject
@@ -90,7 +84,7 @@ class User extends Authenticatable implements JWTSubject
         return false;
     }
 
-    public function getCurrentSubscriptionName()
+    public function getCurrentSubscriptionName(): string
     {
         return $this->role->display_name;
     }

@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Event;
 use App\Listeners\StripeEventListener;
 use Laravel\Cashier\Events\WebhookReceived;
 
-
 class EventServiceProvider extends ServiceProvider
 {
     /**

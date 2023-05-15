@@ -14,12 +14,12 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-        
+
 
         \DB::table('users')->delete();
-        
+
         \DB::table('users')->insert(array (
-            0 => 
+            0 =>
             array (
                 'id' => 1,
                 'role_id' => 1,
@@ -32,15 +32,12 @@ class UsersTableSeeder extends Seeder
                 'settings' => NULL,
                 'created_at' => '2017-11-21 16:07:22',
                 'updated_at' => '2018-09-22 23:34:02',
-                // 'stripe_id' => NULL,
-                // 'card_brand' => NULL,
-                // 'card_last_four' => NULL,
                 'trial_ends_at' => NULL,
                 'verification_code' => NULL,
                 'verified' => 1,
             ),
         ));
-        
-        
+
+
     }
 }

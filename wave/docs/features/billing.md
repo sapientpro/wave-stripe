@@ -90,7 +90,7 @@ CVC: Any 3 digit code
 
 If you are using the Paddle Payment provider, the webhook is already configured; however, if you are using Stripe you will need to add the following URL to your `routes/web.php` in order to listen Cancel or Updates in the client account.
 
-`YOUR_URL/wave-stripe/webhook`
+`YOUR_URL/stripe/webhook`
 
 ---
 

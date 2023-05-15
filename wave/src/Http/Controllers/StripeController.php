@@ -3,18 +3,17 @@
 namespace Wave\Http\Controllers;
 
 use Illuminate\Support\Facades\Validator;
+use Stripe\Subscription;
+use TCG\Voyager\Models\Role;
 use Wave\Plan;
 use Wave\User;
-use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
-use App\Notifications\NewUserPassword;
 
 class StripeController extends Controller
 {
-
     public function postCreateCheckoutSession(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -76,7 +75,9 @@ class StripeController extends Controller
 
         $session = $stripe->checkout->sessions->retrieve($request->get('session_id'));
         $customer = $stripe->customers->retrieve($session->customer);
-        if (!$session || !$customer) abort(401);
+        if (!$session || !$customer) {
+            abort(401);
+        }
 
         $subscription = $stripe->subscriptions->retrieve($session->subscription);
 
@@ -92,7 +93,6 @@ class StripeController extends Controller
 
         // Authenticate the user
         Auth::login($user);
-
 
         session()->flash('complete');
         return view('theme::welcome');
@@ -113,10 +113,11 @@ class StripeController extends Controller
                 $user->syncStripeCustomerDetails();
             }
             session()->flash('existing_customer');
+
             return $user;
         };
 
-        $role = \TCG\Voyager\Models\Role::where('name', '=', config('voyager.user.default_role'))->first();
+        $role = Role::where('name', '=', config('voyager.user.default_role'))->first();
 
         $verification_code = NULL;
         $verified = 1;
@@ -157,14 +158,10 @@ class StripeController extends Controller
             'trial_ends_at' => $trial_ends_at
         ]);
 
-        // if($user) {
-        //     $user->notify(new NewUserPassword($user, $newPassword));
-        // }
-
         return $user;
     }
 
-    private function createStripeSubscription($user,  \Stripe\Subscription $stripeSubscription, string $name = 'default')
+    private function createStripeSubscription($user,  Subscription $stripeSubscription, string $name = 'default')
     {
         if (!$user->hasDefaultPaymentMethod()) {
             $user->updateDefaultPaymentMethod($stripeSubscription->default_payment_method);
@@ -208,7 +205,7 @@ class StripeController extends Controller
 
     private function getUniqueUsernameFromEmail($email)
     {
-        $username = strtolower(trim(str_slug(explode('@', $email)[0])));
+        $username = strtolower(str_slug(explode('@', $email)[0]));
 
         $new_username = $username;
 

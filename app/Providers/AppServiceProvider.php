@@ -11,6 +11,16 @@ use Laravel\Cashier\Cashier as StripeCashier;
 class AppServiceProvider extends ServiceProvider
 {
     /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        StripeCashier::ignoreMigrations();
+    }
+
+    /**
      * Bootstrap any application services.
      *
      * @return void
@@ -58,17 +68,6 @@ class AppServiceProvider extends ServiceProvider
                 StripeCashier::calculateTaxes();
             }
         }
-
-    }
-
-    /**
-     * Register any application services.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        StripeCashier::ignoreMigrations();
     }
 
     private function setSchemaDefaultLength(): void

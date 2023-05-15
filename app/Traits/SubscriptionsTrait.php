@@ -51,7 +51,7 @@ trait SubscriptionsTrait
         return false;
     }
 
-    public function subscription($name = 'default')
+    public function subscription(string $name = 'default')
     {
         switch ($this->paymentVendor) {
             case 'stripe':
@@ -61,7 +61,7 @@ trait SubscriptionsTrait
         }
     }
 
-    protected function stripeSubscription($name)
+    protected function stripeSubscription(string $name)
     {
         return $this->subscriptions->where('name', $name)->first();
     }

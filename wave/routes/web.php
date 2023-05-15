@@ -34,49 +34,51 @@ Route::post('checkout', '\Wave\Http\Controllers\SubscriptionController@checkout'
 Route::get('test', '\Wave\Http\Controllers\SubscriptionController@test');
 
 Route::group(['middleware' => 'wave'], function () {
-	Route::get('dashboard', '\Wave\Http\Controllers\DashboardController@index')->name('wave.dashboard');
+    Route::get('dashboard', '\Wave\Http\Controllers\DashboardController@index')->name('wave.dashboard');
 });
 
-Route::group(['middleware' => 'auth'], function(){
-	Route::get('settings/{section?}', '\Wave\Http\Controllers\SettingsController@index')->name('wave.settings');
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('settings/{section?}', '\Wave\Http\Controllers\SettingsController@index')->name('wave.settings');
 
-	Route::post('settings/profile', '\Wave\Http\Controllers\SettingsController@profilePut')->name('wave.settings.profile.put');
-	Route::put('settings/security', '\Wave\Http\Controllers\SettingsController@securityPut')->name('wave.settings.security.put');
+    Route::post('settings/profile', '\Wave\Http\Controllers\SettingsController@profilePut')->name('wave.settings.profile.put');
+    Route::put('settings/security', '\Wave\Http\Controllers\SettingsController@securityPut')->name('wave.settings.security.put');
 
-	Route::post('settings/api', '\Wave\Http\Controllers\SettingsController@apiPost')->name('wave.settings.api.post');
-	Route::put('settings/api/{id?}', '\Wave\Http\Controllers\SettingsController@apiPut')->name('wave.settings.api.put');
-	Route::delete('settings/api/{id?}', '\Wave\Http\Controllers\SettingsController@apiDelete')->name('wave.settings.api.delete');
+    Route::post('settings/api', '\Wave\Http\Controllers\SettingsController@apiPost')->name('wave.settings.api.post');
+    Route::put('settings/api/{id?}', '\Wave\Http\Controllers\SettingsController@apiPut')->name('wave.settings.api.put');
+    Route::delete('settings/api/{id?}', '\Wave\Http\Controllers\SettingsController@apiDelete')->name('wave.settings.api.delete');
 
-	Route::get('settings/invoices/{invoice}', '\Wave\Http\Controllers\SettingsController@invoice')->name('wave.invoice');
+    Route::get('settings/invoices/{invoice}', '\Wave\Http\Controllers\SettingsController@invoice')->name('wave.invoice');
 
-	Route::get('notifications', '\Wave\Http\Controllers\NotificationController@index')->name('wave.notifications');
-	Route::get('announcements', '\Wave\Http\Controllers\AnnouncementController@index')->name('wave.announcements');
-	Route::get('announcement/{id}', '\Wave\Http\Controllers\AnnouncementController@announcement')->name('wave.announcement');
-	Route::post('announcements/read', '\Wave\Http\Controllers\AnnouncementController@read')->name('wave.announcements.read');
-	Route::get('notifications', '\Wave\Http\Controllers\NotificationController@index')->name('wave.notifications');
-	Route::post('notification/read/{id}', '\Wave\Http\Controllers\NotificationController@delete')->name('wave.notification.read');
+    Route::get('notifications', '\Wave\Http\Controllers\NotificationController@index')->name('wave.notifications');
+    Route::get('announcements', '\Wave\Http\Controllers\AnnouncementController@index')->name('wave.announcements');
+    Route::get('announcement/{id}', '\Wave\Http\Controllers\AnnouncementController@announcement')->name('wave.announcement');
+    Route::post('announcements/read', '\Wave\Http\Controllers\AnnouncementController@read')->name('wave.announcements.read');
+    Route::get('notifications', '\Wave\Http\Controllers\NotificationController@index')->name('wave.notifications');
+    Route::post('notification/read/{id}', '\Wave\Http\Controllers\NotificationController@delete')->name('wave.notification.read');
 
     /********** Checkout/Billing Routes ***********/
     Route::post('cancel', '\Wave\Http\Controllers\SubscriptionController@cancel')->name('wave.cancel');
     Route::view('checkout/welcome', 'theme::welcome');
 
     Route::post('subscribe', '\Wave\Http\Controllers\SubscriptionController@subscribe')->name('wave.subscribe');
-	Route::view('trial_over', 'theme::trial_over')->name('wave.trial_over');
-	Route::view('cancelled', 'theme::cancelled')->name('wave.cancelled');
+    Route::view('trial_over', 'theme::trial_over')->name('wave.trial_over');
+    Route::view('cancelled', 'theme::cancelled')->name('wave.cancelled');
     Route::post('switch-plans', '\Wave\Http\Controllers\SubscriptionController@switchPlans')->name('wave.switch-plans');
 });
 
-Route::group(['middleware' => 'admin.user'], function(){
+Route::group(['middleware' => 'admin.user'], function () {
     Route::view('admin/do', 'wave::do');
 });
 
 // Stripe routes
 if (config('payment.vendor') == 'stripe') {
-	Route::post('stripe/create-checkout-session', '\Wave\Http\Controllers\StripeController@postCreateCheckoutSession')->name('stripe.create-checkout-session');
-	Route::get('stripe/success-checkout-session', '\Wave\Http\Controllers\StripeController@postSuccessCheckout')->name('stripe.success-checkout');
-	Route::get('stripe/error-checkout-session', '\Wave\Http\Controllers\StripeController@postErrorCheckout')->name('stripe.error-checkout');
+    Route::prefix('stripe')->as('stripe.')->group(function () {
+        Route::post('create-checkout-session', '\Wave\Http\Controllers\StripeController@postCreateCheckoutSession')->name('create-checkout-session');
+        Route::get('success-checkout-session', '\Wave\Http\Controllers\StripeController@postSuccessCheckout')->name('success-checkout');
+        Route::get('error-checkout-session', '\Wave\Http\Controllers\StripeController@postErrorCheckout')->name('error-checkout');
 
-	Route::get('stripe/billing-portal', '\Wave\Http\Controllers\StripeController@getBillingPortal')->name('stripe.billing-portal')->middleware('auth');
+        Route::get('billing-portal', '\Wave\Http\Controllers\StripeController@getBillingPortal')->name('billing-portal')->middleware('auth');
 
-	Route::post('wave-stripe/webhook', '\Wave\Http\Controllers\WebhookController@handleWebhook')->name('stripe.webhook');
+        Route::post('webhook', '\Wave\Http\Controllers\WebhookController@handleWebhook')->name('webhook');
+    });
 }
