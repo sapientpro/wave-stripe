@@ -43,7 +43,10 @@ After adding these credentials, your application has been successfully configure
 
 <a name="stripe-integration"></a>
 ## Stripe Integration
-
+### Create a Stripe Account:
+To start integrating your application with Stripe, you first need to sign up for an account at Stripe's website. After successful registration, you'll be directed to your Stripe Dashboard.
+### Retrieve your API Keys:
+Inside your Stripe Dashboard, click on "Developers" in the left side menu, then on "API Keys". Here you will find your Publishable key and your Secret key. These are the credentials you will need to add to your .env file.
 Activate your Stripe integration via *CASHIER_VENDOR* variable in the `.env` file:
 
 `CASHIER_VENDOR="stripe"`
@@ -52,6 +55,7 @@ Activate your Stripe integration via *CASHIER_VENDOR* variable in the `.env` fil
 ## NEW STRIPE INTEGRATION
 CASHIER_VENDOR="paddle"
 #CASHIER_VENDOR="stripe"
+STRIPE_MODE=test
 
 CASHIER_STRIPE_CALCULATE_TAXES=FALSE
 CASHIER_STRIPE_ALLOW_PROMO_CODES=TRUE
