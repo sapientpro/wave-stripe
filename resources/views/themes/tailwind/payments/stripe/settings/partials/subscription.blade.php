@@ -8,9 +8,15 @@
 <hr class="my-8">
 
 <div class="flex flex-col">
-    <h5 class="mb-2 text-xl font-bold text-gray-700">Modify your Subscription</h5>
-    <p>Click the button below to update your subscription or payment methods</p>
-    <a href="{{ route('stripe.billing-portal') }}" class="inline-flex self-start justify-center w-auto px-4 py-2 mt-5 text-sm font-medium text-white transition duration-150 ease-in-out border border-transparent rounded-md checkout-update bg-wave-600 hover:bg-wave-500 focus:outline-none focus:border-wave-700 focus:shadow-outline-wave active:bg-wave-700">Update details</a>
+    @if(auth()->user()->stripe_id)
+        <h5 class="mb-2 text-xl font-bold text-gray-700">Modify your Subscription</h5>
+        <p>Click the button below to update your subscription or payment methods</p>
+        <a href="{{ route('stripe.billing-portal') }}" class="inline-flex self-start justify-center w-auto px-4 py-2 mt-5 text-sm font-medium text-white transition duration-150 ease-in-out border border-transparent rounded-md checkout-update bg-wave-600 hover:bg-wave-500 focus:outline-none focus:border-wave-700 focus:shadow-outline-wave active:bg-wave-700">Update details</a>
+    @else
+        <h5 class="mb-2 text-xl font-bold text-gray-700">Subscription Info</h5>
+        <p>To manage your subscription you have to buy it first.</p>
+        <a href="{{ route('wave.settings', 'plans') }}" class="inline-flex self-start justify-center w-auto px-4 py-2 mt-5 text-sm font-medium text-white transition duration-150 ease-in-out border border-transparent rounded-md checkout-update bg-wave-600 hover:bg-wave-500 focus:outline-none focus:border-wave-700 focus:shadow-outline-wave active:bg-wave-700">View Plans</a>
+    @endif
 </div>
 
 @if (auth()->user()->subscription($subscriptionName)?->onGracePeriod())
