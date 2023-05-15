@@ -5,10 +5,8 @@ namespace Wave;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Wave\Facades\Wave as WaveFacade;
-use Wave\TokenGuard;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Blade;
@@ -146,6 +144,7 @@ class WaveServiceProvider extends ServiceProvider
 
         Blade::directive('waveCheckout', function() use ($paymentVendor){
             $view = ($paymentVendor == 'stripe') ? 'wave::stripe-checkout' : 'wave::checkout';
+
             return '{!! view("' . $view . '")->render() !!}';
         });
 

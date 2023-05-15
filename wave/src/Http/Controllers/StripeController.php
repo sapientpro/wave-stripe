@@ -8,6 +8,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Stripe\Exception\ApiErrorException;
@@ -45,7 +46,6 @@ class StripeController extends Controller
         return response()->json($session, 200);
     }
 
-
     /**
      * Handle the success Stripe Checkout
      * @param Request $request
@@ -56,16 +56,19 @@ class StripeController extends Controller
     {
         $user = $this->stripeService->handleSuccessCheckout($request);
 
-        if($user){
+        if ($user) {
+            Auth::login($user);
+            session()->flash('complete');
             return view('theme::welcome');
         }
 
         return abort(401);
     }
 
-    public function postErrorCheckout(Request $request)
+    public function postErrorCheckout(Request $request): RedirectResponse
     {
         Log::error('Stripe checkout failed.', ['request' => $request->all()]);
+
         return redirect()
             ->back()
             ->with(['message' => 'There was an error processing your payment. Please try again.', 'message_type' => 'warning']);

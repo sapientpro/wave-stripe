@@ -84,11 +84,6 @@ class User extends Authenticatable implements JWTSubject
         return false;
     }
 
-    public function getCurrentSubscriptionName(): string
-    {
-        return $this->role->display_name;
-    }
-
     /**
      * @return bool
      */

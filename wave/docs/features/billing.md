@@ -53,8 +53,8 @@ Activate your Stripe integration via *CASHIER_VENDOR* variable in the `.env` fil
 
 ```
 ## NEW STRIPE INTEGRATION
-CASHIER_VENDOR="paddle"
-#CASHIER_VENDOR="stripe"
+CASHIER_VENDOR=paddle
+#CASHIER_VENDOR=stripe
 STRIPE_MODE=test
 
 CASHIER_STRIPE_CALCULATE_TAXES=FALSE

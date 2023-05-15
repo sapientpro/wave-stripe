@@ -2,19 +2,30 @@
 
 namespace App\Services;
 
+use App\Repositories\UserRepository;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Laravel\Cashier\Subscription;
 use Stripe\Checkout\Session;
+use Stripe\Customer;
 use Stripe\Exception\ApiErrorException;
 use Stripe\StripeClient;
-use Stripe\Subscription;
+use Stripe\Subscription as StripeSubscription;
+use Stripe\SubscriptionItem;
 use TCG\Voyager\Models\Role;
 use Wave\Plan;
 use Wave\User;
 
 class StripeService
 {
+    const DEFAULT_SUBSCRIPTION_NAME = 'default';
+
+    public function __construct(
+        private readonly UserRepository $userRepository
+    )
+    {
+    }
+
     /**
      * @param Request $request
      * @return Session
@@ -68,7 +79,9 @@ class StripeService
      */
     public function handleSuccessCheckout(Request $request): ?User
     {
-        if (!$request->get('session_id')) abort(401);
+        if (!$request->get('session_id')) {
+            abort(401);
+        }
         $stripe = new StripeClient(config('payment.stripe.secret'));
 
         $session = $stripe->checkout->sessions->retrieve($request->get('session_id'));
@@ -80,7 +93,7 @@ class StripeService
         $subscription = $stripe->subscriptions->retrieve($session->subscription);
 
         $user = $this->createUserFromCheckout($customer);
-        $name = $session->metadata?->name ?? 'default';
+        $name = $session->metadata?->name ?? self::DEFAULT_SUBSCRIPTION_NAME;
         $this->createStripeSubscription($user, $subscription, $name);
 
         // Update User role
@@ -89,86 +102,39 @@ class StripeService
         $user->role_id = $plan->role_id;
         $user->save();
 
-        // Authenticate the user
-        Auth::login($user);
-
-        session()->flash('complete');
         return $user;
     }
 
-    private function createUserFromCheckout(\Stripe\Customer $customer)
+    private function createUserFromCheckout(Customer $customer): User
     {
-        $user = User::where('email', $customer->email)->first();
+        $user = $this->userRepository->getByEmail($customer->email);
         if ($user) {
             if (!$user->stripe_id) {
-                $user->stripe_id = $customer->id;
-                $user->save();
-
-                $user->syncStripeCustomerDetails();
+                $this->userRepository->updateStripeId($user, $customer->id);
             }
             session()->flash('existing_customer');
-
             return $user;
         };
 
-        $role = Role::where('name', '=', config('voyager.user.default_role'))->first();
-
-        $verification_code = NULL;
-        $verified = 1;
-
-        if (setting('auth.verify_email', false)) {
-            $verification_code = str_random(30);
-            $verified = 0;
-        }
-
-        $username = $this->getUniqueUsernameFromEmail($customer->email);
-
-        $username_original = $username;
-        $counter = 1;
-
-        while (User::where('username', '=', $username)->first()) {
-            $username = $username_original . (string)$counter;
-            $counter += 1;
-        }
-
-        $trial_days = setting('billing.trial_days', 0);
-        $trial_ends_at = null;
-        // if trial days is not zero we will set trial_ends_at to ending date
-        if (intval($trial_days) > 0) {
-            $trial_ends_at = now()->addDays(setting('billing.trial_days', 0));
-        }
-
-        $newPassword = Str::random(16);
-
-        $user = User::create([
-            'name' => $customer->name,
-            'email' => $customer->email,
-            'stripe_id' => $customer->id,
-            'username' => $username,
-            'password' => bcrypt($newPassword),
-            'role_id' => $role->id,
-            'verification_code' => $verification_code,
-            'verified' => $verified,
-            'trial_ends_at' => $trial_ends_at
-        ]);
-
-        return $user;
+        return $this->userRepository->createFromStripeCustomer($customer);
     }
 
-    private function createStripeSubscription($user,  Subscription $stripeSubscription, string $name = 'default')
+    private function createStripeSubscription($user, StripeSubscription $stripeSubscription, string $name = self::DEFAULT_SUBSCRIPTION_NAME): Subscription|bool
     {
         if (!$user->hasDefaultPaymentMethod()) {
             $user->updateDefaultPaymentMethod($stripeSubscription->default_payment_method);
         }
 
-        if ($user->subscriptions()->count()) return false;
+        if ($user->subscriptions()->count()) {
+            return false;
+        }
 
         // Manually add subscription to our database. The Stripe subscription has already been added throw checkout
-        /** @var \Stripe\SubscriptionItem $firstItem */
+        /** @var SubscriptionItem $firstItem */
         $firstItem = $stripeSubscription->items->first();
         $isSinglePrice = $stripeSubscription->items->count() === 1;
 
-        /** @var \Laravel\Cashier\Subscription $subscription */
+        /** @var Subscription $subscription */
         $subscription = $user->subscriptions()->create([
             'name' => $name,
             'stripe_id' => $stripeSubscription->id,
@@ -179,7 +145,7 @@ class StripeService
             'ends_at' => null,
         ]);
 
-        /** @var \Stripe\SubscriptionItem $item */
+        /** @var SubscriptionItem $item */
         foreach ($stripeSubscription->items as $item) {
             $subscription->items()->create([
                 'stripe_id' => $item->id,
@@ -190,28 +156,5 @@ class StripeService
         }
 
         return $subscription;
-    }
-
-    private function getUniqueUsernameFromEmail($email)
-    {
-        $username = strtolower(str_slug(explode('@', $email)[0]));
-
-        $newUsername = $username;
-
-        $user_exists = \Wave\User::where('username', '=', $username)->first();
-        $counter = 1;
-        while (isset($user_exists->id)) {
-            $newUsername = $username . $counter;
-            $counter += 1;
-            $user_exists = \Wave\User::where('username', '=', $newUsername)->first();
-        }
-
-        $username = $newUsername;
-
-        if (strlen($username) < 4) {
-            $username = $username . uniqid();
-        }
-
-        return strtolower($username);
     }
 }

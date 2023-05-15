@@ -2,6 +2,10 @@
 
 namespace App\Traits;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
+use Laravel\Cashier\Subscription;
 use Wave\PaddleSubscription;
 use Wave\Plan;
 
@@ -51,7 +55,7 @@ trait SubscriptionsTrait
         return false;
     }
 
-    public function subscription(string $name = 'default')
+    public function subscription(string $name = 'default'): HasOne|Subscription|null
     {
         switch ($this->paymentVendor) {
             case 'stripe':
@@ -61,13 +65,43 @@ trait SubscriptionsTrait
         }
     }
 
-    protected function stripeSubscription(string $name)
+    protected function stripeSubscription(string $name): ?Subscription
     {
         return $this->subscriptions->where('name', $name)->first();
     }
 
-    protected function defaultSubscription()
+    protected function defaultSubscription(): HasOne
     {
         return $this->hasOne(PaddleSubscription::class);
+    }
+
+    public function getCurrentSubscriptionName(): string
+    {
+        switch ($this->paymentVendor) {
+            case 'stripe':
+                return $this->getCurrentStripeSubscriptionName();
+            default:
+                return $this->getCurrentDefaultSubscriptionName();
+        }
+    }
+
+    public function getCurrentStripeSubscriptionName(): string
+    {
+        $today = Carbon::today();
+
+        $subscription = DB::table('subscriptions')
+            ->where('user_id', '=', $this->id)
+            ->where(function ($query) use ($today) {
+                $query->where('ends_at', '>', $today) // exclude ended subscriptions
+                ->orWhereNull('ends_at'); // include subscriptions with no end date
+            })
+            ->first();
+
+        return $subscription?->name ?? '';
+    }
+
+    public function getCurrentDefaultSubscriptionName(): string
+    {
+        return $this->role->display_name;
     }
 }
