@@ -18,7 +18,7 @@
         <a href="{{ route('wave.settings', 'plans') }}" class="inline-flex self-start justify-center w-auto px-4 py-2 mt-5 text-sm font-medium text-white transition duration-150 ease-in-out border border-transparent rounded-md checkout-update bg-wave-600 hover:bg-wave-500 focus:outline-none focus:border-wave-700 focus:shadow-outline-wave active:bg-wave-700">View Plans</a>
     @endif
 </div>
-{{$subscriptionName}}
+
 @if (auth()->user()->subscription($subscriptionName)?->onGracePeriod())
     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-6">
         <div class="flex">

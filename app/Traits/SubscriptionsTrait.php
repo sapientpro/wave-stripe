@@ -21,12 +21,10 @@ trait SubscriptionsTrait
 
     public function subscribed(string $planName = 'default', string $price = null): bool
     {
-        switch ($this->paymentVendor) {
-            case 'stripe':
-                return $this->stripeSubscribed($planName, $price);
-            default:
-                return $this->defaultSubscribed($planName);
-        }
+        return match ($this->paymentVendor) {
+            'stripe' => $this->stripeSubscribed($planName, $price),
+            default => $this->defaultSubscribed($planName),
+        };
     }
 
     protected function stripeSubscribed(string $planName, string $price = null): bool
@@ -57,12 +55,10 @@ trait SubscriptionsTrait
 
     public function subscription(string $name = 'default'): HasOne|Subscription|null
     {
-        switch ($this->paymentVendor) {
-            case 'stripe':
-                return $this->stripeSubscription($name);
-            default:
-                return $this->defaultSubscription();
-        }
+        return match ($this->paymentVendor) {
+            'stripe' => $this->stripeSubscription($name),
+            default => $this->defaultSubscription(),
+        };
     }
 
     protected function stripeSubscription(string $name): ?Subscription
@@ -77,12 +73,10 @@ trait SubscriptionsTrait
 
     public function getCurrentSubscriptionName(): string
     {
-        switch ($this->paymentVendor) {
-            case 'stripe':
-                return $this->getCurrentStripeSubscriptionName();
-            default:
-                return $this->getCurrentDefaultSubscriptionName();
-        }
+        return match ($this->paymentVendor) {
+            'stripe' => $this->getCurrentStripeSubscriptionName(),
+            default => $this->getCurrentDefaultSubscriptionName(),
+        };
     }
 
     public function getCurrentStripeSubscriptionName(): string
