@@ -2,6 +2,7 @@
 
 namespace Wave;
 
+use App\Traits\SubscriptionsTrait;
 use Carbon\Carbon;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
@@ -9,13 +10,15 @@ use Illuminate\Support\Str;
 use Lab404\Impersonate\Models\Impersonate;
 use TCG\Voyager\Models\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use Wave\Announcement;
-use Wave\PaddleSubscription;
-use Wave\Plan;
+use Laravel\Cashier\Billable as StripeBillable;
 
 class User extends Authenticatable implements JWTSubject
 {
     use Notifiable, Impersonate;
+    use SubscriptionsTrait, StripeBillable {
+        SubscriptionsTrait::subscribed insteadof StripeBillable;
+        SubscriptionsTrait::subscription insteadof StripeBillable;
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -23,13 +26,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'username',
-        'password',
-        'verification_code',
-        'verified',
-        'trial_ends_at',
+        'name', 'email', 'username', 'password', 'verification_code', 'verified', 'trial_ends_at', 'role_id', 'stripe_id',
     ];
 
     /**
@@ -72,20 +69,6 @@ class User extends Authenticatable implements JWTSubject
         return true;
     }
 
-    public function subscribed($plan){
-
-        $plan = Plan::where('slug', $plan)->first();
-
-        // if the user is an admin they automatically have access to the default plan
-        if(isset($plan->default) && $plan->default && $this->hasRole('admin')) return true;
-
-        if(isset($plan->slug) && $this->hasRole($plan->slug)){
-            return true;
-        }
-
-        return false;
-    }
-
     public function subscriber(){
 
         if($this->hasRole('admin')) return true;
@@ -100,11 +83,6 @@ class User extends Authenticatable implements JWTSubject
 
         return false;
     }
-
-    public function subscription(){
-        return $this->hasOne(PaddleSubscription::class);
-    }
-
 
     /**
      * @return bool

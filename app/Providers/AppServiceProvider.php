@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
+use Wave\User;
 use Illuminate\Support\Facades\Schema;
+use Laravel\Cashier\Cashier as StripeCashier;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        StripeCashier::ignoreMigrations();
     }
 
     /**
@@ -58,6 +60,14 @@ class AppServiceProvider extends ServiceProvider
 
             return true;
         });
+
+        if (config('payment.vendor') == 'stripe') {
+            StripeCashier::useCustomerModel(User::class);
+
+            if (config('payment.stripe.calculate_taxes')) {
+                StripeCashier::calculateTaxes();
+            }
+        }
     }
 
     private function setSchemaDefaultLength(): void
