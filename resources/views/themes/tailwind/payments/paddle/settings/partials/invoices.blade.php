@@ -2,8 +2,7 @@
 
     @subscriber
     @php
-        $subscription = new \Wave\Http\Controllers\SubscriptionController;
-        $invoices = $subscription->invoices( auth()->user() );
+        $invoices = auth()->user()->getInvoices();
     @endphp
 
     @if(isset($invoices->success) && $invoices->success == true)

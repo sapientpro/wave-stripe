@@ -4,7 +4,9 @@ namespace App\Traits;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Laravel\Cashier\Subscription;
 use Wave\PaddleSubscription;
 use Wave\Plan;
@@ -101,5 +103,37 @@ trait SubscriptionsTrait
     public function getCurrentDefaultSubscriptionName(): string
     {
         return $this->role->display_name;
+    }
+
+    public function getInvoices(): mixed
+    {
+        return match ($this->getPaymentVendor()) {
+            'stripe' => $this->getStripeInvoices(),
+            default => $this->getDefaultInvoices(),
+        };
+    }
+
+    protected function getStripeInvoices(): Collection
+    {
+        return $this->invoices();
+    }
+
+    protected function getDefaultInvoices(): mixed
+    {
+        $invoices = [];
+
+        if(isset($this->subscription->subscription_id)){
+            $paddle_vendors_url = (config('wave.paddle.env') == 'sandbox') ? 'https://sandbox-vendors.paddle.com/api' : 'https://vendors.paddle.com/api';
+            $response = Http::post($paddle_vendors_url . '/2.0/subscription/payments', [
+                'vendor_id' => config('wave.paddle.vendor'),
+                'vendor_auth_code' => config('wave.paddle.auth_code'),
+                'subscription_id' => $this->subscription->subscription_id,
+                'is_paid' => 1
+            ]);
+
+            $invoices = json_decode($response->body());
+        }
+
+        return $invoices;
     }
 }

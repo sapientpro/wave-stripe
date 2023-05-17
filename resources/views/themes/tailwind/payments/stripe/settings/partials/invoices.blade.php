@@ -1,4 +1,4 @@
-@if (count(auth()->user()->invoices()))
+@if (count(auth()->user()->getInvoices()))
     <table class="min-w-full overflow-hidden divide-y divide-gray-200 rounded-lg">
         <thead>
         <tr>
@@ -14,7 +14,7 @@
         </tr>
         </thead>
         <tbody>
-        @foreach(auth()->user()->invoices() as $invoice)
+        @foreach(auth()->user()->getInvoices() as $invoice)
             <tr class="@if($loop->index%2 == 0){{ 'bg-gray-50' }}@else{{ 'bg-gray-100' }}@endif">
                 <td class="px-6 py-4 text-sm font-medium leading-5 text-gray-900 whitespace-no-wrap">
                     {{ Carbon\Carbon::parse($invoice->created)->toFormattedDateString() }}
