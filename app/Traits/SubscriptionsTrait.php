@@ -11,17 +11,21 @@ use Wave\Plan;
 
 trait SubscriptionsTrait
 {
-    protected string $paymentVendor;
+    protected ?string $paymentVendor = null;
 
-    public function __construct()
+    public function getPaymentVendor(): string
     {
-        parent::__construct();
-        $this->paymentVendor = config('payment.vendor');
+        if ($this->paymentVendor === null) {
+            $this->paymentVendor = config('payment.vendor');
+        }
+
+        return $this->paymentVendor;
     }
+
 
     public function subscribed(string $planName = 'default', string $price = null): bool
     {
-        return match ($this->paymentVendor) {
+        return match ($this->getPaymentVendor()) {
             'stripe' => $this->stripeSubscribed($planName, $price),
             default => $this->defaultSubscribed($planName),
         };
@@ -55,7 +59,7 @@ trait SubscriptionsTrait
 
     public function subscription(string $name = 'default'): HasOne|Subscription|null
     {
-        return match ($this->paymentVendor) {
+        return match ($this->getPaymentVendor()) {
             'stripe' => $this->stripeSubscription($name),
             default => $this->defaultSubscription(),
         };
@@ -73,7 +77,7 @@ trait SubscriptionsTrait
 
     public function getCurrentSubscriptionName(): string
     {
-        return match ($this->paymentVendor) {
+        return match ($this->getPaymentVendor()) {
             'stripe' => $this->getCurrentStripeSubscriptionName(),
             default => $this->getCurrentDefaultSubscriptionName(),
         };
