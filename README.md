@@ -2,6 +2,18 @@
 
 <p align="center"><a href="https://www.producthunt.com/posts/wave-2-0" target="_blank"><img src="https://cdn.devdojo.com/images/april2021/upvote-product-hunt-img.png" height="auto" width="auto"></a></p>
 
+- [Introduction](#introduction)
+- [Demo](#demo)
+- [Installation](#installation)
+  - [Create a New Database](#1-create-a-new-database)
+  - [Copy the `.env.example` file](#2-copy-the-envexample-file)
+  - [Add Composer Dependencies](#3-add-composer-dependencies)
+  - [Run Migrations and Seeds](#4-run-migrations-and-seeds)
+- [Watch, Learn, and Build](#watch-learn-and-build)
+- [Documentation](#documentation)
+- [Payment integration](#payment-integration)
+
+
 ## Introduction
 
 [Wave](https://devdojo.com/wave) is a Software as a Service Starter Kit that can help you build your next great idea 💰. Wave is built with [Laravel](https://laravel.com), [Voyager](https://voyager.devdojo.com), [TailwindCSS](https://tailwindcss.com), and a few other awesome technologies. Here are some of the awesome features ✨:
@@ -102,3 +114,8 @@ We've also got a full video series on how you can setup, build, and configure Wa
 ## Documentation
 
 Checkout the [official documentation here](https://wave.devdojo.com/docs).
+
+
+## Payment integration
+We extended payments functionality adding Stripe. You are free to choose Stripe or Paddle for your project. See more billing info following the link:
+[Wave Billing Documentation](wave/docs/features/billing.md)
