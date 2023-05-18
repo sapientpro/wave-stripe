@@ -1,5 +1,7 @@
 <?php
 
+use Wave\User;
+
 if (!class_exists(WaveKeyValueConvertible::class)) {
     class WaveKeyValueConvertible
     {
@@ -116,4 +118,11 @@ if(!function_exists('tailwindPlanColor')){
 	  return $code;
 	}
 
+}
+
+if (!function_exists('current_subscription_name')) {
+    function current_subscription_name(User $user): ?string
+    {
+        return $user->getCurrentSubscriptionName();
+    }
 }

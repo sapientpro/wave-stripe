@@ -27,13 +27,17 @@ class StripeEventListener
      */
     public function handle(WebhookReceived $event)
     {
-        if ($event->payload['type'] === self::EVENT_SUBSCRIPTION_DELETED) {
-            $user = User::where('stripe_id', $event->payload['data']['object']['customer'])->first();
-            if (!$user) return false;
-
-            $cancelledRole = Role::query()->where('name', 'cancelled')->first();
-            $user->role_id = $cancelledRole->id;
-            $user->save();
+        if ($event->payload['type'] !== self::EVENT_SUBSCRIPTION_DELETED) {
+            return false;
         }
+
+        $user = User::where('stripe_id', $event->payload['data']['object']['customer'])->first();
+        if (!$user) {
+            return false;
+        }
+
+        $cancelledRole = Role::query()->where('name', 'cancelled')->first();
+        $user->role_id = $cancelledRole->id;
+        $user->save();
     }
 }

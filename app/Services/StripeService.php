@@ -108,15 +108,16 @@ class StripeService
     private function createUserFromCheckout(Customer $customer): User
     {
         $user = $this->userRepository->getByEmail($customer->email);
-        if ($user) {
-            if (!$user->stripe_id) {
-                $this->userRepository->updateStripeId($user, $customer->id);
-            }
-            session()->flash('existing_customer');
-            return $user;
-        };
+        if (!$user) {
+            return $this->userRepository->createFromStripeCustomer($customer);
+        }
 
-        return $this->userRepository->createFromStripeCustomer($customer);
+        if (!$user->stripe_id) {
+            $this->userRepository->updateStripeId($user, $customer->id);
+        }
+
+        session()->flash('existing_customer');
+        return $user;
     }
 
     private function createStripeSubscription($user, StripeSubscription $stripeSubscription, string $name = self::DEFAULT_SUBSCRIPTION_NAME): Subscription|bool

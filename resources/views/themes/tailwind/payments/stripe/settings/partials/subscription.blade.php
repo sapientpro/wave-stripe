@@ -1,5 +1,5 @@
 @php
-    $subscriptionName = auth()->user()->getCurrentSubscriptionName();
+    $subscriptionName = current_subscription_name(auth()->user());
 @endphp
 <div class="flex flex-col">
     <h5 class="mb-2 text-xl font-semibold text-gray-700">Your active subscription is: <span class="font-normal underline">{{ auth()->user()->role->display_name }}</span></h5>

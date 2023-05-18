@@ -25,11 +25,12 @@ class UserRepository
     public function getUniqueUsernameFromEmail(string $email): string
     {
         $username = Str::before($email, '@');
-        $username_original = $username;
+        $usernameOriginal = $username;
+        $similarUsernames = User::query()->where('username', 'like', $username.'%')->pluck('username');
         $counter = 1;
 
-        while ($this->getByUsername($username)) {
-            $username = $username_original . (string)$counter;
+        while ($similarUsernames->contains($username)) {
+            $username = $usernameOriginal . $counter;
             $counter += 1;
         }
 
